@@ -11,6 +11,7 @@ import { createIssueSchema } from '@/app/validationSchema';
 import {z} from 'zod';
 import { Text } from '@radix-ui/themes';
 import ErrorMessage from '@/app/components/ErrorMessage';
+import Spinner from '@/app/components/Spinner';
 
 
 
@@ -25,6 +26,24 @@ const newIssue = () => {
     console.log(register('title'));
 
     const [error, setError] = useState('');
+    const[isSubmitting, setSubmitting] = useState(false);
+
+
+    const onSubmit = handleSubmit(async(data)=> {
+        try {
+            setSubmitting(true);
+            await axios.post('/api/issues',data);
+            router.push('/issues')
+            
+        } catch (error) {
+            setSubmitting(false);
+            setError('An unexpected error occurred.')
+
+        }
+    }
+    );
+
+
   return (
     <div className='max-w-xl '>
         {error && (
@@ -32,17 +51,8 @@ const newIssue = () => {
                 <Callout.Text>{error}</Callout.Text>
             </Callout.Root>
             )}
-    <form className='space-y-3' onSubmit={handleSubmit(async(data)=> {
-        try {
-            await axios.post('/api/issues',data);
-            router.push('/issues')
-            
-        } catch (error) {
-            setError('An unexpected error occurred.')
-
-        }
-    }
-    )}>
+    <form className='space-y-3' 
+    onSubmit={onSubmit}>
         <TextField.Root placeholder="Title" {...register('title')}>
         </TextField.Root>
         
@@ -62,7 +72,7 @@ const newIssue = () => {
             {errors.description?.message}
         </ErrorMessage>
 
-        <Button>Submit New Issue</Button>
+        <Button disabled={isSubmitting}>Submit New Issue {isSubmitting && <Spinner />}</Button>
     </form>
     </div>
   )
